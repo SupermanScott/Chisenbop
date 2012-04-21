@@ -5,6 +5,7 @@
 #
 import chisenbop.packets as packets
 import datetime
+import time
 import nose.tools
 
 def test_determineTimeAgoSeconds():
@@ -29,3 +30,24 @@ def test_determineTimeAgoSeconds():
 def test_determineTimeAgoInvalid():
     now = datetime.datetime.now()
     packets.Packet.determineTimeAgo(now, "invalid_config")
+
+def test_keyConstruction():
+    current_time = time.time()
+    event_name = "test"
+    version = "1.0"
+    configuration = (
+        ("seconds", 1,),
+        ("minutes", 60 * 24 * 30,),
+        )
+
+    packet = packets.Packet("%s!%s!%s" % 
+                            (current_time, event_name, version,))
+    keys = packet.constructKeys(configuration)
+    assert len(keys) == 2, \
+        "Two keys were not returned: %s" % keys
+    time.sleep(1)
+    packet = packets.Packet("%s!%s!%s" % 
+                            (current_time, event_name, version,))
+    keys = packet.constructKeys(configuration)
+    assert len(keys) == 1, \
+        "Failed to prevent writing for the additional key: %s" % keys
