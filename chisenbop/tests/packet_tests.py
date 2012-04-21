@@ -13,7 +13,7 @@ def test_determineTimeAgoSeconds():
     Test logic of time ago class method
     """
     now = datetime.datetime.now()
-    timestamp = time.mktime(now.timetuple())
+    timestamp = int(time.mktime(now.timetuple()))
     assert packets.Packet.determineTimeAgo(now, "seconds") == timestamp, \
         "Timeago failed to return the second when asked"
     assert packets.Packet.determineTimeAgo(now, "minutes") == timestamp / 60, \
