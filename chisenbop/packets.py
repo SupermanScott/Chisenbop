@@ -24,26 +24,58 @@ class Packet(object):
         Returns all the keys for the packet based on the configuration
         """
         event_date = datetime.datetime.fromtimestamp(self.timestamp)
-        now = datetime.datetime.now()
-        current_timestamp = time.mktime(now.timetuple())
-        delta = now - event_date
-
+        now = time.time()
         keys = []
         for (granularity, count_of_keys) in configuration:
-            todays_value = Packet.determineTimeAgo(now, granularity)
             key_value = Packet.determineTimeAgo(event_date, granularity)
-            if todays_value - key_value < count_of_keys:
-                key_string = "%s:%s:%s" % (key_value, self.event, self.version,)
-                expire_timestamp = current_timestamp - delta.microseconds / 100
-                keys.append((key_string, expire_timestamp,))
+            expire_timestamp = self.determineExpiration(granularity, count_of_keys)
+            if expire_timestamp > now:
+                key_string = "%s:%s:%s:%s" % (granularity, key_value, self.event, self.version,)
+                keys.append((key_string, int(expire_timestamp),))
         return keys
+
+    def determineExpiration(self, granularity, number_of_keys):
+        """
+        Determine when this event should expire
+        """
+        secs_year = 31556926
+
+        if granularity == 'seconds':
+            return self.timestamp + number_of_keys
+        if granularity == 'minutes':
+            exact = datetime.datetime.fromtimestamp(
+                self.timestamp + 60 * number_of_keys)
+            return time.mktime(
+                datetime.datetime(exact.year, exact.month, exact.day,
+                                  exact.hour, exact.minute).timetuple())
+        if granularity == 'hours':
+            exact = datetime.datetime.fromtimestamp(
+                self.timestamp + 3600 * number_of_keys)
+            return time.mktime(
+                datetime.datetime(exact.year, exact.month, exact.day,
+                                  exact.hour).timetuple())
+        if granularity == 'days':
+            return time.mktime(
+                datetime.date.fromtimestamp(
+                    self.timestamp + 86400 * number_of_keys).timetuple())
+        if granularity == 'months':
+            exact = datetime.date.fromtimestamp(
+                self.timestamp  + 2629743 * number_of_keys)
+            return time.mktime(
+                datetime.date(exact.year, exact.month, 1).timetuple())
+        if granularity == 'years':
+            exact = datetime.date.fromtimestamp(
+                self.timestamp + secs_year * number_of_keys)
+            # Gets me 1/1/YEAR_OF_EXPIRATION
+            return time.mktime(
+                datetime.date(exact.year, 1, 1).timetuple())
 
     @classmethod
     def determineTimeAgo(cls, event_date, granularity):
         """
         Returns the integer for the event date in the given granularity
         """
-        timestamp = time.mktime(event_date.timetuple())
+        timestamp = int(time.mktime(event_date.timetuple()))
         if granularity == 'seconds':
             return timestamp
         if granularity == 'minutes':
