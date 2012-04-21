@@ -13,17 +13,18 @@ def test_determineTimeAgoSeconds():
     Test logic of time ago class method
     """
     now = datetime.datetime.now()
-    assert packets.Packet.determineTimeAgo(now, "seconds") == now.second, \
+    timestamp = time.mktime(now.timetuple())
+    assert packets.Packet.determineTimeAgo(now, "seconds") == timestamp, \
         "Timeago failed to return the second when asked"
-    assert packets.Packet.determineTimeAgo(now, "minutes") == now.minute, \
+    assert packets.Packet.determineTimeAgo(now, "minutes") == timestamp / 60, \
         "Timeago failed to return the minute when asked"
-    assert packets.Packet.determineTimeAgo(now, "hours") == now.hour, \
+    assert packets.Packet.determineTimeAgo(now, "hours") == timestamp / 3600, \
         "Timeago failed to return the hours when asked"
-    assert packets.Packet.determineTimeAgo(now, "days") == now.day, \
+    assert packets.Packet.determineTimeAgo(now, "days") == timestamp / 86400, \
         "Timeago failed to return the day when asked"
-    assert packets.Packet.determineTimeAgo(now, "months") == now.month, \
+    assert packets.Packet.determineTimeAgo(now, "months") == timestamp / 2629743, \
         "Timeago failed to return the month when asked"
-    assert packets.Packet.determineTimeAgo(now, "years") == now.year, \
+    assert packets.Packet.determineTimeAgo(now, "years") == timestamp / 31556926, \
         "Timeago failed to return the year when asked"
 
 @nose.tools.raises(ValueError)

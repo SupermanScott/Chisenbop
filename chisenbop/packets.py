@@ -4,6 +4,8 @@
 # Author: Scott Reynolds <scott@scottreynolds.us>
 #
 import datetime
+import time
+
 class Packet(object):
     """
     Packet class represents the data that came in down the stream. It breaks the
@@ -36,17 +38,18 @@ class Packet(object):
         """
         Returns the integer for the event date in the given granularity
         """
+        timestamp = time.mktime(event_date.timetuple())
         if granularity == 'seconds':
-            return event_date.second
+            return timestamp
         if granularity == 'minutes':
-            return event_date.minute
+            return timestamp / 60
         if granularity == 'hours':
-            return event_date.hour
+            return timestamp / 3600
         if granularity == 'days':
-            return event_date.day
+            return timestamp / 86400
         if granularity == 'months':
-            return event_date.month
+            return timestamp / 2629743
         if granularity == 'years':
-            return event_date.year
+            return timestamp / 31556926
 
         raise ValueError("Provided granularity is not supported")
