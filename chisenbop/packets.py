@@ -11,31 +11,21 @@ class Packet(object):
     """
     def __new__(cls, encoded_data, *args, **kwargs):
         implementation = super(Packet, cls).__new__(cls, *args, **kwargs)
-        implementation.timestamp = encoded_data.split("!")[0]
+        implementation.timestamp = float(encoded_data.split("!")[0])
         implementation.event = encoded_data.split("!")[1]
         implementation.version = encoded_data.split("!")[2]
 
         return implementation
 
-    def __init__(self, configuration):
-        """
-        Construct a packet object with the provided key
-        configuration. Configuration is an iterable of tuples, the first element
-        of the tuple is either, seconds, minutes, hours, days, weeks, months, or
-        years and the second element of the tuple is an integer representing the
-        number of keys to keep for this granularity
-        """
-        self.configuration = configuration
-
-    def constructKeys(self):
+    def constructKeys(self, configuration):
         """
         Returns all the keys for the packet based on the configuration
         """
         event_date = datetime.datetime.fromtimestamp(self.timestamp)
         now = datetime.datetime.now()
         keys = []
-        for (granularity, count_of_keys) in self.configuration:
-            todays_value = Packet.determineTimeAgo(event_date, granularity)
+        for (granularity, count_of_keys) in configuration:
+            todays_value = Packet.determineTimeAgo(now, granularity)
             key_value = Packet.determineTimeAgo(event_date, granularity)
             if todays_value - key_value < count_of_keys:
                 keys.append("%s:%s:%s" % (key_value, self.event, self.version,))
