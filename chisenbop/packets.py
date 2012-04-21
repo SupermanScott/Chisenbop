@@ -25,12 +25,17 @@ class Packet(object):
         """
         event_date = datetime.datetime.fromtimestamp(self.timestamp)
         now = datetime.datetime.now()
+        current_timestamp = time.mktime(now.timetuple())
+        delta = now - event_date
+
         keys = []
         for (granularity, count_of_keys) in configuration:
             todays_value = Packet.determineTimeAgo(now, granularity)
             key_value = Packet.determineTimeAgo(event_date, granularity)
             if todays_value - key_value < count_of_keys:
-                keys.append("%s:%s:%s" % (key_value, self.event, self.version,))
+                key_string = "%s:%s:%s" % (key_value, self.event, self.version,)
+                expire_timestamp = current_timestamp - delta.microseconds / 100
+                keys.append((key_string, expire_timestamp,))
         return keys
 
     @classmethod
